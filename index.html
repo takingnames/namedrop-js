@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <script type='module'>
+
+      import namedrop from './index.js';
+
+      namedrop.setApiUri('https://anderspitman.com/namedrop'); 
+
+      const client = await namedrop.checkAuthFlow();
+      if (!client) {
+        await namedrop.startAuthFlow({
+          scopes: [
+            'servers',
+            'mail',
+            'acme'
+          ],
+        });
+      }
+
+      const records = [
+        {
+          type: 'A',
+          value: '136.36.114.20',
+        },
+        {
+          type: 'AAAA',
+          value: '2605:a601:a997:5500:2dab:4652:a74:d5cd',
+        },
+        {
+          type: 'MX',
+          value: 'fakemail.apitman.com',
+        },
+        {
+          type: 'TXT',
+          value: 'v=spf1 include:spf.messagingengine.com ?all',
+        },
+        {
+          host: client.host ? `fake._domainkey.${client.host}` : 'fake._domainkey',
+          type: 'CNAME',
+          value: 'fm1.lastlogin.io.dkim.fmhosted.com',
+        },
+        {
+          host: client.host ? `_acme-challenge.${client.host}`: '_acme-challenge',
+          type: 'TXT',
+          value: 'fake-challenge',
+        },
+      ];
+
+      await client.setRecords({ records });
+
+    </script>
+  </body>
+</html>
+
