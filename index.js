@@ -16,7 +16,24 @@ class Client {
     return this._host;
   }
 
-  async setRecords({ domain, host, records }) {
+  async getRecords(opt) {
+    const result = await this.doRecords('get-records', opt || { records: [] });
+    return result.records;
+  }
+
+  async createRecords(opt) {
+    return this.doRecords('create-records', opt);
+  }
+
+  async setRecords(opt) {
+    return this.doRecords('set-records', opt);
+  }
+
+  async deleteRecords(opt) {
+    return this.doRecords('delete-records', opt);
+  }
+
+  async doRecords(endpoint, { domain, host, records }) {
 
     const recsCopy = JSON.parse(JSON.stringify(records));
 
@@ -29,7 +46,7 @@ class Client {
       }
     }
 
-    const uri = `${apiUri}/set-records`;
+    const uri = `${apiUri}/${endpoint}`;
     const res = await fetch(uri, {
       method: 'POST',
       headers:{
@@ -38,14 +55,19 @@ class Client {
         'Content-Type': 'text/plain'
       },    
       body: JSON.stringify({
+        domain: this.domain,
         token: this._token,
         records: recsCopy,
       }),
     });
 
-    const json = await res.json();
+    const result = await res.json();
 
-    console.log(json);
+    if (result.type !== 'success') {
+      throw new Error(JSON.stringify(result, null, 2));
+    }
+
+    return result;
   }
 }
 
@@ -172,4 +194,5 @@ export default {
   setApiUri,
   checkAuthFlow,
   startAuthFlow,
+  Client,
 };
