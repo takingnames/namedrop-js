@@ -6,7 +6,7 @@ const SCOPE_MAIL = 'namedrop-mail';
 const SCOPE_ACME = 'namedrop-acme';
 
 class Client {
-  constructor(token, domain, host) {
+  constructor({ token, domain, host }) {
     this._token = token;
     this._domain = domain;
     this._host = host;
@@ -158,7 +158,11 @@ async function checkAuthFlow() {
 
   window.history.replaceState(null, '', window.location.pathname);
 
-  return new Client(json.access_token, json.permissions[0].domain, json.permissions[0].host);
+  return new Client({
+    token: json.access_token,
+    domain: json.permissions[0].domain,
+    host: json.permissions[0].host,
+  });
 }
 
 function genRandomText(len) {

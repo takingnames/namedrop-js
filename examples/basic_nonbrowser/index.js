@@ -2,7 +2,11 @@ import namedrop from '../../index.js';
 
 //namedrop.setApiUri('https://anderspitman.com/namedrop'); 
 
-const client = new namedrop.Client('<token-here>', 'anderspitman.com', 'test');
+const client = new namedrop.Client({
+  token: '<token-here>',
+  domain: 'anderspitman.com',
+  host: 'test',
+});
 
 const records = await client.getRecords();
 console.log(records);
