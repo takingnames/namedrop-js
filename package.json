@@ -1,0 +1,15 @@
+{
+  "name": "namedrop-js",
+  "type": "module",
+  "version": "0.2.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Anders Pitman <&ers@apitman.com>",
+  "license": "MIT",
+  "description": "JavaScript libary for the NameDrop DNS protocol",
+  "dependencies": {
+    "namedrop-js": "^0.1.0"
+  }
+}
