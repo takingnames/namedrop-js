@@ -7,15 +7,18 @@
   <style>
     html {
       font-family: Courier New;
+      font-size: 18px;
     }
 
-    #api-uri-text {
-      width: 320px;
+    input[type='text'] {
+      width: 400px;
+      font-size: 18px;
+      margin-bottom: 16px;
     }
 
-    #token-container {
-      font-size: 24px;
-      margin-bottom: 32px;
+    input[type='checkbox'] {
+      width: 20px;
+      height: 20px;
     }
 
   </style>
@@ -46,9 +49,25 @@
     </div>
 
 
-    <h1>Token</h1>
+    <h1>Results</h1>
 
-    <div id='token-container'>
+    <div>
+      <label for='domain-text'>Domain:</label>
+      <div>
+        <input type='text' id='domain-text' readonly />
+      </div>
+    </div>
+    <div>
+      <label for='host-text'>Host:</label>
+      <div>
+        <input type='text' id='host-text' readonly />
+      </div>
+    </div>
+    <div>
+      <label for='token-text'>Token:</label>
+      <div>
+        <input type='text' id='token-text' readonly />
+      </div>
     </div>
 
     <form>
@@ -61,7 +80,9 @@
 
       const client = await namedrop.checkAuthFlow();
       if (client) {
-        document.getElementById('token-container').innerText = client.token;
+        document.getElementById('domain-text').value = client.domain;
+        document.getElementById('host-text').value = client.host;
+        document.getElementById('token-text').value = client.token;
       }
 
       const goBtn = document.getElementById('go-button');
@@ -77,15 +98,24 @@
           namedrop.setApiUri(apiUri); 
         }
 
+        const hostsScope = document.getElementById('hosts-scope-checkbox').checked;
+        const mailScope = document.getElementById('mail-scope-checkbox').checked;
+        const acmeScope = document.getElementById('acme-scope-checkbox').checked;
+
+        if (!(hostsScope || mailScope || acmeScope)) {
+          alert("Need at least one scope");
+          return;
+        }
+
         const scopes = [];
 
-        if (document.getElementById('hosts-scope-checkbox').checked) {
+        if (hostsScope) {
           scopes.push(namedrop.SCOPE_HOSTS);
         }
-        if (document.getElementById('mail-scope-checkbox').checked) {
+        if (mailScope) {
           scopes.push(namedrop.SCOPE_MAIL);
         }
-        if (document.getElementById('acme-scope-checkbox').checked) {
+        if (acmeScope) {
           scopes.push(namedrop.SCOPE_ACME);
         }
 
