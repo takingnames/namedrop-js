@@ -1,6 +1,10 @@
 let prefix = "namedrop";
 let apiUri = 'https://takingnames.io/namedrop';
 
+const SCOPE_HOSTS = 'namedrop-hosts';
+const SCOPE_MAIL = 'namedrop-mail';
+const SCOPE_ACME = 'namedrop-acme';
+
 class Client {
   constructor(token, domain, host) {
     this._token = token;
@@ -14,6 +18,10 @@ class Client {
 
   get host() {
     return this._host;
+  }
+
+  get token() {
+    return this._token;
   }
 
   async getRecords(opt) {
@@ -75,13 +83,13 @@ function setApiUri(newUri) {
   apiUri = newUri;
 }
 
-const validPerms = [ 'namedrop-hosts', 'namedrop-mail', 'namedrop-acme' ];
+const validScopes = [ SCOPE_HOSTS, SCOPE_MAIL, SCOPE_ACME ];
 
 function buildScope(req) {
 
-  for (const perm of req.scopes) {
-    if (!validPerms.includes(perm)) {
-      throw new Error(`Invalid perm: "${perm}"`);
+  for (const scope of req.scopes) {
+    if (!validScopes.includes(scope)) {
+      throw new Error(`Invalid scope: "${scope}"`);
     }
   }
 
@@ -191,6 +199,9 @@ async function generateCodeChallengeFromVerifier(v) {
 }
 
 export default {
+  SCOPE_HOSTS,
+  SCOPE_MAIL,
+  SCOPE_ACME,
   setApiUri,
   checkAuthFlow,
   startAuthFlow,
