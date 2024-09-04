@@ -75,7 +75,7 @@ function setApiUri(newUri) {
   apiUri = newUri;
 }
 
-const validPerms = [ 'servers', 'mail', 'acme' ];
+const validPerms = [ 'namedrop-hosts', 'namedrop-mail', 'namedrop-acme' ];
 
 function buildScope(req) {
 

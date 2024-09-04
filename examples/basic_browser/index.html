@@ -7,17 +7,17 @@
   <body>
     <script type='module'>
 
-      import namedrop from './index.js';
+      import namedrop from '../../index.js';
 
-      namedrop.setApiUri('https://anderspitman.com/namedrop'); 
+      //namedrop.setApiUri('https://anderspitman.com/namedrop'); 
 
       const client = await namedrop.checkAuthFlow();
       if (!client) {
         await namedrop.startAuthFlow({
           scopes: [
-            'servers',
-            'mail',
-            'acme'
+            'namedrop-hosts',
+            'namedrop-mail',
+            'namedrop-acme'
           ],
         });
       }
@@ -52,6 +52,7 @@
       ];
 
       await client.setRecords({ records });
+      //await client.deleteRecords({ records });
 
     </script>
   </body>
