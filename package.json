@@ -8,8 +8,5 @@
   },
   "author": "Anders Pitman <&ers@apitman.com>",
   "license": "MIT",
-  "description": "JavaScript libary for the NameDrop DNS protocol",
-  "dependencies": {
-    "namedrop-js": "^0.1.0"
-  }
+  "description": "JavaScript libary for the NameDrop DNS protocol"
 }
