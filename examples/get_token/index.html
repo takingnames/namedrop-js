@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    html {
+      font-family: Courier New;
+    }
+
+    #api-uri-text {
+      width: 320px;
+    }
+
+    #token-container {
+      font-size: 24px;
+      margin-bottom: 32px;
+    }
+
+  </style>
+
+  </head>
+  <body>
+
+    <h1>API URI</h1>
+
+    <div>
+      <input id='api-uri-text' type='text' placeholder='https://takingnames.io/namedrop'/>
+    </div>
+
+
+    <h1>Scopes</h1>
+
+    <div>
+      <input id='hosts-scope-checkbox' type='checkbox' />
+      <label for='hosts-scope-checkbox'>namedrop-hosts</label>
+    </div>
+    <div>
+      <input id='mail-scope-checkbox' type='checkbox' />
+      <label for='mail-scope-checkbox'>namedrop-mail</label>
+    </div>
+    <div>
+      <input id='acme-scope-checkbox' type='checkbox' />
+      <label for='acme-scope-checkbox'>namedrop-acme</label>
+    </div>
+
+
+    <h1>Token</h1>
+
+    <div id='token-container'>
+    </div>
+
+    <form>
+      <button id='go-button'>Get New Token</button>
+    </form>
+
+    <script type='module'>
+
+      import namedrop from '../../index.js';
+
+      const client = await namedrop.checkAuthFlow();
+      if (client) {
+        document.getElementById('token-container').innerText = client.token;
+      }
+
+      const goBtn = document.getElementById('go-button');
+      goBtn.addEventListener('click', (evt) => {
+        evt.preventDefault();
+
+        go();
+      });
+
+      async function go() {
+        const apiUri = document.getElementById('api-uri-text').value;
+        if (apiUri) {
+          namedrop.setApiUri(apiUri); 
+        }
+
+        const scopes = [];
+
+        if (document.getElementById('hosts-scope-checkbox').checked) {
+          scopes.push(namedrop.SCOPE_HOSTS);
+        }
+        if (document.getElementById('mail-scope-checkbox').checked) {
+          scopes.push(namedrop.SCOPE_MAIL);
+        }
+        if (document.getElementById('acme-scope-checkbox').checked) {
+          scopes.push(namedrop.SCOPE_ACME);
+        }
+
+        await namedrop.startAuthFlow({ scopes });
+      }
+
+    </script>
+  </body>
+</html>
+
