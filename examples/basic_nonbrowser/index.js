@@ -3,9 +3,7 @@ import namedrop from '../../index.js';
 //namedrop.setApiUri('https://anderspitman.com/namedrop'); 
 
 const client = new namedrop.Client({
-  token: '<token-here>',
-  domain: 'anderspitman.com',
-  host: 'test',
+  token: '<token here>',
 });
 
 const records = await client.getRecords();
@@ -15,8 +13,8 @@ try {
   await client.setRecords({
     records: [
       {
-        type: 'CNAME',
-        value: 'takingnames.io',
+        type: 'A',
+        value: '127.0.0.2',
       },
     ],
   });

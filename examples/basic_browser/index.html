@@ -40,19 +40,22 @@
           value: 'v=spf1 include:spf.messagingengine.com ?all',
         },
         {
-          host: client.host ? `fake._domainkey.${client.host}` : 'fake._domainkey',
+          host: 'fake._domainkey.{{host}}',
           type: 'CNAME',
           value: 'fm1.lastlogin.io.dkim.fmhosted.com',
         },
         {
-          host: client.host ? `_acme-challenge.${client.host}`: '_acme-challenge',
+          host: '_acme-challenge.{{host}}',
           type: 'TXT',
           value: 'fake-challenge',
         },
       ];
 
       await client.setRecords({ records });
-      //await client.deleteRecords({ records });
+
+      setTimeout(() => {
+        client.deleteRecords({ records });
+      }, 5000);
 
     </script>
   </body>

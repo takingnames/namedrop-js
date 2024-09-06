@@ -45,15 +45,6 @@ class Client {
 
     const recsCopy = JSON.parse(JSON.stringify(records));
 
-    for (const record of recsCopy) {
-      if (record.domain === undefined) {
-        record.domain = domain ? domain : this.domain;
-      }
-      if (record.host === undefined) {
-        record.host = host ? host : this.host;
-      }
-    }
-
     const uri = `${apiUri}/${endpoint}`;
     const res = await fetch(uri, {
       method: 'POST',
@@ -63,7 +54,8 @@ class Client {
         'Content-Type': 'text/plain'
       },    
       body: JSON.stringify({
-        domain: this.domain,
+        domain,
+        host,
         token: this._token,
         records: recsCopy,
       }),
