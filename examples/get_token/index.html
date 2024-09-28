@@ -10,7 +10,7 @@
       font-size: 18px;
     }
 
-    input[type='text'] {
+    input[type='text'], input[type='url'] {
       width: 400px;
       font-size: 18px;
       margin-bottom: 16px;
@@ -29,22 +29,22 @@
     <h1>API URI</h1>
 
     <div>
-      <input id='api-uri-text' type='text' placeholder='https://takingnames.io/namedrop'/>
+      <input id='api-uri-text' type='url' placeholder='https://takingnames.io/namedrop'/>
     </div>
 
 
     <h1>Scopes</h1>
 
     <div>
-      <input id='hosts-scope-checkbox' type='checkbox' />
+      <input id='hosts-scope-checkbox' type='checkbox' checked />
       <label for='hosts-scope-checkbox'>namedrop-hosts</label>
     </div>
     <div>
-      <input id='mail-scope-checkbox' type='checkbox' />
+      <input id='mail-scope-checkbox' type='checkbox' checked />
       <label for='mail-scope-checkbox'>namedrop-mail</label>
     </div>
     <div>
-      <input id='acme-scope-checkbox' type='checkbox' />
+      <input id='acme-scope-checkbox' type='checkbox' checked />
       <label for='acme-scope-checkbox'>namedrop-acme</label>
     </div>
 
@@ -78,6 +78,13 @@
 
       import namedrop from '../../index.js';
 
+      const apiUriInput = document.getElementById('api-uri-text');
+
+      const prevApiUri = localStorage.getItem('namedrop_api_uri');
+      if (prevApiUri !== '') {
+        apiUriInput.value = prevApiUri;
+      }
+
       const client = await namedrop.checkAuthFlow();
       if (client) {
         document.getElementById('domain-text').value = client.domain;
@@ -93,10 +100,15 @@
       });
 
       async function go() {
-        const apiUri = document.getElementById('api-uri-text').value;
+        let apiUri = apiUriInput.value;
         if (apiUri) {
           namedrop.setApiUri(apiUri); 
         }
+        else {
+          apiUri = 'https://takingnames.io/namedrop';
+        }
+
+        localStorage.setItem('namedrop_api_uri', apiUri);
 
         const hostsScope = document.getElementById('hosts-scope-checkbox').checked;
         const mailScope = document.getElementById('mail-scope-checkbox').checked;

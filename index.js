@@ -99,7 +99,7 @@ async function startAuthFlow(req) {
   const scope = buildScope(req);
 
   const state = genRandomText(32);
-  const authUri = `${apiUri}/authorize?client_id=${clientId}&scope=${scope}&redirect_uri=${redirectUri}&state=${state}&response_type=code&code_challenge=${codeChallenge}`;
+  const authUri = `${apiUri}/authorize?client_id=${clientId}&scope=${scope}&redirect_uri=${redirectUri}&state=${state}&response_type=code&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
   const authRequest = {
     apiUri,
