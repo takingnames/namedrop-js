@@ -4,12 +4,16 @@ let apiUri = 'https://takingnames.io/namedrop';
 const SCOPE_HOSTS = 'namedrop-hosts';
 const SCOPE_MAIL = 'namedrop-mail';
 const SCOPE_ACME = 'namedrop-acme';
+const SCOPE_ATPROTO_HANDLE = 'namedrop-atproto-handle';
+
+const validScopes = [ SCOPE_HOSTS, SCOPE_MAIL, SCOPE_ACME, SCOPE_ATPROTO_HANDLE ];
 
 class Client {
-  constructor({ token, domain, host }) {
+  constructor({ token, permissions, domain, host }) {
     this._token = token;
     this._domain = domain;
     this._host = host;
+    this._permissions = permissions;
   }
 
   get domain() {
@@ -22,6 +26,10 @@ class Client {
 
   get token() {
     return this._token;
+  }
+
+  get permissions() {
+    return this._permissions;
   }
 
   async getRecords(opt) {
@@ -74,8 +82,6 @@ class Client {
 function setApiUri(newUri) {
   apiUri = newUri;
 }
-
-const validScopes = [ SCOPE_HOSTS, SCOPE_MAIL, SCOPE_ACME ];
 
 function buildScope(req) {
 
@@ -152,6 +158,7 @@ async function checkAuthFlow() {
 
   return new Client({
     token: json.access_token,
+    permissions: json.permissions,
     domain: json.permissions[0].domain,
     host: json.permissions[0].host,
   });
@@ -194,10 +201,11 @@ async function generateCodeChallengeFromVerifier(v) {
   return base64encoded;
 }
 
-export default {
+export {
   SCOPE_HOSTS,
   SCOPE_MAIL,
   SCOPE_ACME,
+  SCOPE_ATPROTO_HANDLE,
   setApiUri,
   checkAuthFlow,
   startAuthFlow,
