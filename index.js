@@ -127,6 +127,8 @@ async function checkAuthFlow() {
     return;
   }
 
+  window.history.replaceState(null, '', window.location.pathname);
+
   const authRequestJson = localStorage.getItem(state);
   localStorage.removeItem(state);
 
@@ -151,10 +153,6 @@ async function checkAuthFlow() {
   });
 
   const json = await res.json();
-
-  console.log(json);
-
-  window.history.replaceState(null, '', window.location.pathname);
 
   return new Client({
     token: json.access_token,
