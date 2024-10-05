@@ -1,4 +1,4 @@
-import namedrop from '../../index.js';
+import * as namedrop from '../../index.js';
 
 //namedrop.setApiUri('https://anderspitman.com/namedrop'); 
 

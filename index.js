@@ -1,5 +1,5 @@
 let prefix = "namedrop";
-let apiUri = 'https://takingnames.io/namedrop';
+let DEFAULT_API_URI = 'https://takingnames.io/namedrop';
 
 const SCOPE_HOSTS = 'namedrop-hosts';
 const SCOPE_MAIL = 'namedrop-mail';
@@ -50,33 +50,56 @@ class Client {
   }
 
   async doRecords(endpoint, { domain, host, records }) {
-
-    const recsCopy = JSON.parse(JSON.stringify(records));
-
-    const uri = `${apiUri}/${endpoint}`;
-    const res = await fetch(uri, {
-      method: 'POST',
-      headers:{
-        // Using text/plain is a hack to avoid CORS preflights, which are an
-        // abomination
-        'Content-Type': 'text/plain'
-      },    
-      body: JSON.stringify({
-        domain,
-        host,
-        token: this._token,
-        records: recsCopy,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (result.type !== 'success') {
-      throw new Error(JSON.stringify(result, null, 2));
-    }
-
-    return result;
+    return doRecords(apiUri, endpoint, { token: this._token, domain, host, records });
   }
+}
+
+async function getRecords(apiUri, opt) {
+  const result = await this.doRecords(apiUri, 'get-records', opt || { records: [] });
+  return result.records;
+}
+
+async function createRecords(apiUri, opt) {
+  return doRecords(apiUri, 'create-records', opt);
+}
+
+async function setRecords({ apiUri, request }) {
+  return doRecords(apiUri, 'set-records', request);
+}
+
+async function deleteRecords(apiUri, opt) {
+  return doRecords(apiUri, 'delete-records', opt);
+}
+
+async function doRecords(apiUriIn, endpoint, { token, domain, host, records }) {
+
+  const apiUri = apiUriIn ? apiUriIn : DEFAULT_API_URI;
+
+  const recsCopy = JSON.parse(JSON.stringify(records));
+
+  const uri = `${apiUri}/${endpoint}`;
+  const res = await fetch(uri, {
+    method: 'POST',
+    headers:{
+      // Using text/plain is a hack to avoid CORS preflights, which are an
+      // abomination
+      'Content-Type': 'text/plain'
+    },    
+    body: JSON.stringify({
+      domain,
+      host,
+      token,
+      records: recsCopy,
+    }),
+  });
+
+  const result = await res.json();
+
+  if (result.type !== 'success') {
+    throw new Error(JSON.stringify(result, null, 2));
+  }
+
+  return result;
 }
 
 function setApiUri(newUri) {
@@ -92,6 +115,65 @@ function buildScope(req) {
   }
 
   return req.scopes.join(' ');
+}
+
+async function startAuthCodeFlow({ apiUri, authRequest }) {
+
+  const authReq = authRequest;
+
+  if (!authReq.redirectUri) {
+    throw new Error("Missing redirectUri");
+  }
+
+  const clientId = authReq.client_id || authReq.redirectUri;
+
+  const codeVerifier = genRandomText(32);
+  const codeChallenge = await generateCodeChallengeFromVerifier(codeVerifier);
+
+  const state = genRandomText(32);
+
+  const scopeParam = authReq.scopes.join(' ');
+
+  const params = new URLSearchParams();
+  params.set('client_id', clientId);
+  params.set('redirect_uri', authReq.redirectUri);
+  params.set('scope', scopeParam);
+  params.set('state', state);
+  params.set('response_type', 'code');
+  params.set('code_challenge', codeChallenge);
+  params.set('code_challenge_method', 'S256');
+
+  const auri = apiUri ? apiUri : DEFAULT_API_URI;
+
+  const flowState = {
+    state,
+    authUri: `${auri}/authorize?${params.toString()}`,
+    apiUri: auri,
+    clientId,
+    redirectUri: authReq.redirectUri,
+    codeVerifier,
+  };
+
+  return flowState;
+}
+
+async function completeAuthCodeFlow({ flowState, code }) { 
+
+  const res = await fetch(flowState.apiUri + "/token", {
+    method: 'POST',
+    headers:{
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },    
+    body: new URLSearchParams({
+      code,
+      client_id: flowState.clientId,
+      redirect_uri: flowState.redirectUri,
+      code_verifier: flowState.codeVerifier,
+      grant_type: 'authorization_code',
+    }),
+  });
+
+  return res.json();
 }
 
 async function startAuthFlow(req) {
@@ -208,4 +290,7 @@ export {
   checkAuthFlow,
   startAuthFlow,
   Client,
+  startAuthCodeFlow,
+  completeAuthCodeFlow,
+  setRecords,
 };
