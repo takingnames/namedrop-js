@@ -174,7 +174,7 @@ async function completeAuthCodeFlow({ flowState, code }) {
   });
 
   if (!res.ok) {
-    throw new Error(res.text());
+    throw new Error(await res.text());
   }
 
   return res.json();
