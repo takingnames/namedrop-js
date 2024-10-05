@@ -173,6 +173,10 @@ async function completeAuthCodeFlow({ flowState, code }) {
     }),
   });
 
+  if (!res.ok) {
+    throw new Error(res.text());
+  }
+
   return res.json();
 }
 
