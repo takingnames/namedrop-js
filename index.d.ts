@@ -13,22 +13,22 @@ declare module 'namedrop-js' {
 		get token(): string;
 		get permissions(): string;
 
-		async getRecords(opt?: {
+		getRecords(opt?: {
 			domain?: string;
 			host?: string;
 			records: [];
 		}): Promise<NamedropRecord[]>;
-		async createRecords(opt: {
+		createRecords(opt: {
 			domain: string;
 			host: string;
 			records: NamedropRecord[];
 		}): Promise<void>;
-		async setRecords(opt: {
+		setRecords(opt: {
 			domain: string;
 			host: string;
 			records: NamedropRecord[];
 		}): Promise<void>;
-		async deleteRecords(opt: {
+		deleteRecords(opt: {
 			domain: string;
 			host: string;
 			records: NamedropRecord[];
@@ -36,8 +36,8 @@ declare module 'namedrop-js' {
 	}
 
 	export function setApiUri(uri: string): void;
-	export async function checkAuthFlow(): Promise<Client>;
-	export async function startAuthFlow(req: { scopes: string[] }): Promise<void>;
+	export function checkAuthFlow(): Promise<Client>;
+	export function startAuthFlow(req: { scopes: string[] }): Promise<void>;
 
 	export type NamedropScope =
 		| 'namedrop-hosts'
