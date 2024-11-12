@@ -1,5 +1,5 @@
 let prefix = "namedrop_";
-let DEFAULT_API_URI = 'https://takingnames.io/namedrop';
+const DEFAULT_API_URI = 'https://takingnames.io/namedrop';
 
 const SCOPE_HOSTS = 'namedrop-hosts';
 const SCOPE_MAIL = 'namedrop-mail';
@@ -10,6 +10,11 @@ class NotAuthorizedError extends Error {}
 class NotAuthenticatedError extends Error {}
 
 const validScopes = [ SCOPE_HOSTS, SCOPE_MAIL, SCOPE_ACME, SCOPE_ATPROTO_HANDLE ];
+
+let apiUri = DEFAULT_API_URI;
+function setApiUri(newUri) {
+  apiUri = newUri;
+}
 
 function setPrefix(newPrefix) {
   prefix = newPrefix;
@@ -127,9 +132,8 @@ class Client {
   }
 }
 
-async function getRecords(apiUri, opt) {
-  const result = await this.doRecords(apiUri, 'get-records', opt || { records: [] });
-  return result.records;
+async function getRecords({ apiUri, request }) {
+  return doRecords(apiUri, 'get-records', request);
 }
 
 async function createRecords(apiUri, opt) {
@@ -140,11 +144,11 @@ async function setRecords({ apiUri, request }) {
   return doRecords(apiUri, 'set-records', request);
 }
 
-async function deleteRecords(apiUri, opt) {
-  return doRecords(apiUri, 'delete-records', opt);
+async function deleteRecords({ apiUri, request }) {
+  return doRecords(apiUri, 'delete-records', request);
 }
 
-async function doRecords(apiUriIn, endpoint, { token, domain, host, records }) {
+async function doRecords(apiUriIn, endpoint, { token, domain, host, records, deleteConflicting }) {
 
   const apiUri = apiUriIn ? apiUriIn : DEFAULT_API_URI;
 
@@ -163,6 +167,7 @@ async function doRecords(apiUriIn, endpoint, { token, domain, host, records }) {
       host,
       token,
       records: recsCopy,
+      delete_conflicting: deleteConflicting,
     }),
   });
 
@@ -180,10 +185,6 @@ async function doRecords(apiUriIn, endpoint, { token, domain, host, records }) {
   }
 
   return result;
-}
-
-function setApiUri(newUri) {
-  apiUri = newUri;
 }
 
 function buildScope(req) {
@@ -378,6 +379,8 @@ export {
   Client,
   startAuthCodeFlow,
   completeAuthCodeFlow,
+  getRecords,
   setRecords,
+  deleteRecords,
   createClient,
 };
