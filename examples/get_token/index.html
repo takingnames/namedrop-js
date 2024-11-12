@@ -76,7 +76,7 @@
 
     <script type='module'>
 
-      import namedrop from '../../index.js';
+      import * as namedrop from '../../index.js';
 
       const apiUriInput = document.getElementById('api-uri-text');
 
@@ -85,10 +85,12 @@
         apiUriInput.value = prevApiUri;
       }
 
-      const client = await namedrop.checkAuthFlow();
-      if (client) {
-        document.getElementById('domain-text').value = client.domain;
-        document.getElementById('host-text').value = client.host;
+      const client = await namedrop.createClient({ apiUri: apiUriInput.value });
+      if (client.authorized) {
+        const domain = client.permissions[0].domain;
+        const host = client.permissions[0].host;
+        document.getElementById('domain-text').value = domain;
+        document.getElementById('host-text').value = host;
         document.getElementById('token-text').value = client.token;
       }
 
@@ -100,11 +102,9 @@
       });
 
       async function go() {
+
         let apiUri = apiUriInput.value;
-        if (apiUri) {
-          namedrop.setApiUri(apiUri); 
-        }
-        else {
+        if (!apiUri) {
           apiUri = 'https://takingnames.io/namedrop';
         }
 
@@ -131,7 +131,11 @@
           scopes.push(namedrop.SCOPE_ACME);
         }
 
-        await namedrop.startAuthFlow({ scopes });
+        const authReq = {
+          scopes,
+        };
+
+        client.startAuthFlow(authReq);
       }
 
     </script>

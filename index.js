@@ -1,4 +1,4 @@
-let prefix = "namedrop";
+let prefix = "namedrop_";
 let DEFAULT_API_URI = 'https://takingnames.io/namedrop';
 
 const SCOPE_HOSTS = 'namedrop-hosts';
@@ -6,7 +6,80 @@ const SCOPE_MAIL = 'namedrop-mail';
 const SCOPE_ACME = 'namedrop-acme';
 const SCOPE_ATPROTO_HANDLE = 'namedrop-atproto-handle';
 
+class NotAuthorizedError extends Error {}
+class NotAuthenticatedError extends Error {}
+
 const validScopes = [ SCOPE_HOSTS, SCOPE_MAIL, SCOPE_ACME, SCOPE_ATPROTO_HANDLE ];
+
+function setPrefix(newPrefix) {
+  prefix = newPrefix;
+};
+
+async function createClient(opt) {
+
+  if (!localStorage) {
+    throw new Error("No default storage available");
+  }
+
+  const api = opt?.apiUri ? opt.apiUri : DEFAULT_API_URI;
+
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const state = params.get("state");
+
+  let tokenData;
+  if (code && state) {
+    const flowState = JSON.parse(localStorage.getItem(state));
+    localStorage.removeItem(state);
+    tokenData = await completeAuthCodeFlow({ flowState, code });
+    //localStorage.setItem(`${prefix}token_data`, JSON.stringify(tokenData));
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+  
+  //const tokenDataJson = localStorage.getItem(`${prefix}token_data`);
+  //const tokenData = tokenDataJson ? JSON.parse(tokenDataJson) : null;
+
+  return new NewClient(api, tokenData);
+}
+
+class NewClient {
+  constructor(apiUri, tokenData) {
+    this.authorized = tokenData ? true : false;
+    this._apiUri = apiUri;
+    this._tokenData = tokenData;
+    if (tokenData) {
+      this.permissions = tokenData.permissions;
+      this.token = tokenData.access_token;
+    }
+  }
+
+  async startAuthFlow(authReqIn) {
+
+    const ar = authReqIn ? authReqIn : {};
+
+    const redirectUri = ar.redirectUri ? ar.redirectUri : window.location.href;
+    const clientId = ar.clientId ? ar.clientId : window.location.href;
+    const scopes = ar.scopes ? ar.scopes : [ 'namedrop-hosts' ];
+
+    console.log(ar);
+
+    const authRequest = {
+      redirectUri,
+      scopes,
+    };
+
+    const flowState = await startAuthCodeFlow({ apiUri: this._apiUri, authRequest });
+
+    localStorage.setItem(flowState.state, JSON.stringify(flowState));
+
+    window.location.href = flowState.authUri;
+  }
+
+  setRecords(records) {
+    const token = this._tokenData.access_token;
+    return doRecords(this._apiUri, 'set-records', { token, records });
+  }
+}
 
 class Client {
   constructor({ token, permissions, domain, host }) {
@@ -93,6 +166,13 @@ async function doRecords(apiUriIn, endpoint, { token, domain, host, records }) {
     }),
   });
 
+  if (res.status === 401) {
+    throw new NotAuthenticatedError;
+  }
+  else if (res.status === 403) {
+    throw new NotAuthorizedError;
+  }
+
   const result = await res.json();
 
   if (result.type !== 'success') {
@@ -125,7 +205,7 @@ async function startAuthCodeFlow({ apiUri, authRequest }) {
     throw new Error("Missing redirectUri");
   }
 
-  const clientId = authReq.client_id || authReq.redirectUri;
+  const clientId = authReq.clientId || authReq.redirectUri;
 
   const codeVerifier = genRandomText(32);
   const codeChallenge = await generateCodeChallengeFromVerifier(codeVerifier);
@@ -290,6 +370,8 @@ export {
   SCOPE_MAIL,
   SCOPE_ACME,
   SCOPE_ATPROTO_HANDLE,
+  NotAuthenticatedError,
+  NotAuthorizedError,
   setApiUri,
   checkAuthFlow,
   startAuthFlow,
@@ -297,4 +379,5 @@ export {
   startAuthCodeFlow,
   completeAuthCodeFlow,
   setRecords,
+  createClient,
 };
