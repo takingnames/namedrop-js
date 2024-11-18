@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <script type='module'>
+
+      import * as namedrop from '../../index.js';
+
+      //const apiUri = undefined; 
+      //const apiUri = 'https://tn.tn7.org/namedrop'; 
+      const apiUri = 'https://namedrop-server.tn7.org'; 
+
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const state = params.get("state");
+
+      if (code && state) {
+        const flowState = JSON.parse(localStorage.getItem('flow_state'));
+        localStorage.removeItem('flow_state');
+        const tokenData = await namedrop.completeAuthCodeFlow({ flowState, code });
+        localStorage.setItem('token_data', JSON.stringify(tokenData));
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+
+      const tokenData = JSON.parse(localStorage.getItem('token_data'));
+
+      if (!tokenData) {
+        const authRequest = {
+          redirectUri: window.location.href,
+          scopes: [
+            'namedrop-hosts',
+            'namedrop-atproto-handle',
+          ],
+        };
+
+        const flowState = await namedrop.startAuthCodeFlow({ apiUri, authRequest });
+
+        localStorage.setItem('flow_state', JSON.stringify(flowState));
+
+        window.location.href = flowState.authUri;
+      }
+
+      console.log(tokenData);
+
+      const getReq = {
+        token: tokenData.access_token,
+        domain: 'letslogin.org',
+        records: [],
+      };
+      const getRes = await namedrop.getRecords({ apiUri, request: getReq });
+      console.log(getRes);
+
+      const delReq = {
+        token: tokenData.access_token,
+        domain: getReq.domain,
+        records: getRes.records,
+      };
+      const delRes = await namedrop.deleteRecords({ apiUri, request: delReq });
+      console.log(delRes);
+
+      const request = {
+        token: tokenData.access_token,
+        //deleteConflicting: true,
+        records: [
+          {
+            domain: tokenData.permissions[0].domain,
+            //host: tokenData.permissions[0].host,
+            type: 'ANAME',
+            value: 'test1.weird.one',
+          },
+          {
+            domain: tokenData.permissions[0].domain,
+            //host: tokenData.permissions[0].host,
+            host: '_atproto',
+            type: 'TXT',
+            value: 'did=fakedid',
+          },
+        ],
+      }; 
+
+      let res;
+      try {
+        res = await namedrop.setRecords({ apiUri, request });
+        //res = await namedrop.deleteRecords({ apiUri, request });
+      }
+      catch (e) {
+        if (e instanceof namedrop.NotAuthenticatedError || e instanceof namedrop.NotAuthorizedError) {
+          localStorage.removeItem('token_data');
+          window.location.reload();
+        }
+      }
+
+      console.log(res);
+
+      //setTimeout(() => {
+      //  client.deleteRecords({ records });
+      //}, 5000);
+
+    </script>
+  </body>
+</html>
+
